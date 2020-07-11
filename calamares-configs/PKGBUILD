@@ -1,0 +1,20 @@
+# Maintainer: Manzoor Ahmed <manzoorahmedmunawar@gmail.com>
+pkgname=calamares-configs
+_pkgname=calamares-configs
+_destname="/etc/calamares"
+pkgver=1.0
+pkgrel=1
+pkgdesc="calamares for laxeros"
+arch=('any')
+url="https://github.com/laxer-os/${_pkgname}"
+license=('GPL3')
+makedepends=('git')
+depends=()
+provides=("${pkgname}")
+options=(!strip !emptydirs)
+source=(${_pkgname}::"git+https://github.com/laxer-os/${_pkgname}.git")
+sha256sums=('SKIP')
+package() {
+	mkdir -p "${pkgdir}${_destname}"
+	cp -r "${srcdir}/${_pkgname}/calamares/"* "${pkgdir}${_destname}"
+}
