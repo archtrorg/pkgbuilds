@@ -1,0 +1,8 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = true
+[remote "origin"]
+	url = https://github.com/laxer-os/calamares-configs.git
+	fetch = +refs/*:refs/*
+	mirror = true
