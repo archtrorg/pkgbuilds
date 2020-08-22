@@ -1,172 +1,66 @@
-# Maintainer: Guillaume Benoit <guillaume@manjaro.org>
-# Contributor: Philip Müller <philm@manjaro.org>
-# Contributor: Helmut Stult <helmut@manjaro.org>
+# Contributor: Zeph <zeph33@gmail.com>
+# Maintainer: Zeph <zeph33@gmail.com>
+# https://gitlab.manjaro.org/packages/extra/pamac
+ENABLE_FLATPAK=0
+ENABLE_SNAPD=0
 
-pkgbase=pamac
-pkgname=('pamac-common' 'pamac-cli' 'pamac-gtk' 'pamac-tray-appindicator'
-         'pamac-snap-plugin' 'pamac-flatpak-plugin' 'pamac-gnome-integration')
-_pkgver=9.5.8
+pkgname=pamac-aur
 pkgver=9.5.8
 pkgrel=1
-pkgdesc="A Package Manager based on libalpm with AUR and Appstream support"
-arch=('x86_64')
+_pkgfixver=$pkgver
+
+_commit='f5b40f147cca157a5529e744a079d57093712672'
+sha256sums=('5877a27f9040954133ed4e932af52bdc775ba03f65a81a89dc7e2f8583c2af97')
+
+pkgdesc="A Gtk3 frontend for libalpm"
+arch=('i686' 'x86_64' 'arm' 'armv6h' 'armv7h' 'aarch64')
 url="https://gitlab.manjaro.org/applications/pamac"
 license=('GPL3')
-depends=('glib2>=2.42' 'json-glib' 'libsoup' 'dbus-glib' 'polkit' 'vte3'
-         'desktop-file-utils' 'pacman>=5.2' 'pacman<5.3' 'gnutls>=3.4' 'libnotify'
-         'appstream-glib' 'archlinux-appstream-data' 'pacman-mirrors>=4.9.1' 'git')
-makedepends=('gettext' 'meson' 'vala>=0.46.0' 'libappindicator-gtk3' 'gobject-introspection'
-             'gtk3>=3.22' 'snapd' 'snapd-glib' 'flatpak')
+depends=('glib2>=2.42' 'json-glib' 'libsoup' 'dbus-glib' 'polkit' 'vte3>=0.38' 'gtk3>=3.22'
+         'libnotify' 'desktop-file-utils' 'pacman>=5.2' 'gnutls>=3.4' 'git'
+         'appstream-glib' 'archlinux-appstream-data')
+
+optdepends=('polkit-gnome: needed for authentification in Cinnamon, Gnome'
+              'lxsession: needed for authentification in Xfce, LXDE etc.'
+              'pamac-tray-appindicator: tray icon for KDE')
+makedepends=('gettext' 'itstool' 'vala>=0.45' 'meson' 'ninja' 'gobject-introspection' 'xorgproto')
+backup=('etc/pamac.conf')
+conflicts=('pamac')
+provides=("pamac=$pkgver-$pkgrel")
 options=(!emptydirs)
-source=(
-        "pamac-$pkgver.tar.gz::$url/-/archive/v$pkgver/pamac-v$pkgver.tar.gz"
-#        "https://gitlab.manjaro.org/applications/pamac/-/commit/83ac80d7.patch"
-       ) 
-sha256sums=('7bd05f1dbb815ebddcfca85e54c873a0d376e55797ca58e2ad11e815962aca29')
+install=pamac.install
+source=("pamac-$pkgver-$pkgrel.tar.gz::$url/-/archive/$_commit/pamac-$_commit.tar.gz")
+define_meson=''
+if [ "${ENABLE_FLATPAK}" = 1 ]; then
+  depends+=('flatpak')
+  define_meson+=' -Denable-flatpak=true'
+fi
+
+if [ "${ENABLE_SNAPD}" = 1 ]; then
+  depends+=('snapd' 'snapd-glib')
+  define_meson+=' -Denable-snap=true'
+fi
 
 prepare() {
-  cd "$srcdir/pamac-v$_pkgver"
-
-  local src
-  for src in "${source[@]}"; do
-      src="${src%%::*}"
-      src="${src##*/}"
-      [[ $src = *.patch ]] || continue
-      msg2 "Applying patch: $src..."
-      patch -Np1 < "../$src"
-  done
-
+  cd "$srcdir/pamac-$_commit"
   # adjust version string
-  sed -i -e "s|\"$_pkgver\"|\"$pkgver-$pkgrel\"|g" src/version.vala
+  sed -i -e "s|\"$_pkgfixver\"|\"$pkgver-$pkgrel\"|g" src/version.vala
 }
 
 build() {
-  cd "$srcdir/pamac-v$_pkgver"
+  cd "$srcdir/pamac-$_commit"
   mkdir -p builddir
   cd builddir
-  meson --prefix=/usr \
-        --sysconfdir=/etc \
-        -Denable-appindicator=true \
-        -Denable-snap=true \
-        -Denable-flatpak=true \
-        -Denable-fake-gnome-software=true \
-        --buildtype=debug
-
+  meson --buildtype=release \
+        --prefix=/usr \
+        --sysconfdir=/etc $define_meson
   # build
   ninja
 }
 
-package_pamac-common() {
-  optdepends=('pamac-snap-plugin' 'pamac-flatpak-plugin')
-  backup=('etc/pamac.conf')
-  provides=("pamac-common=$pkgver-$pkgrel")
-  conflicts=('pamac<=7.3.4-2' 'pamac-aur' 'pamac-common-dev')
-  install=pamac-common.install
-  cd "$srcdir/pamac-v$_pkgver"
-  cd builddir
+package() {
+  cd "$srcdir/pamac-$_commit/builddir"
+
   DESTDIR="$pkgdir" ninja install
-  # remove pamac-cli
-  rm "$pkgdir/usr/bin/pamac"
-  # remove pamac-tray-appindicator
-  rm "$pkgdir/usr/bin/pamac-tray-appindicator"
-  rm "$pkgdir/etc/xdg/autostart/pamac-tray-appindicator.desktop"
-  # remove pamac-tray
-  rm "$pkgdir/usr/bin/pamac-tray"
-  rm "$pkgdir/etc/xdg/autostart/pamac-tray.desktop"
-  # remove pamac-gtk
-  rm "$pkgdir/usr/share/vala/vapi/pamac-gtk.vapi"
-  rm "$pkgdir/usr/include/pamac-gtk.h"
-  rm "$pkgdir/usr/lib/libpamac-gtk.so"
-  rm "$pkgdir/usr/bin/pamac-installer"
-  rm "$pkgdir/usr/bin/pamac-manager"
-  rm -rf "$pkgdir/usr/share/applications"
-  rm "$pkgdir/usr/share/dbus-1/services/org.manjaro.pamac.manager.service"
-  rm -rf "$pkgdir/usr/share/gnome-shell"
-  # remove pamac-snap
-  rm "$pkgdir/usr/share/vala/vapi/pamac-snap.vapi"
-  rm "$pkgdir/usr/include/pamac-snap.h"
-  rm "$pkgdir/usr/lib/libpamac-snap.so"
-  # remove pamac-flatpak
-  rm "$pkgdir/usr/share/vala/vapi/pamac-flatpak.vapi"
-  rm "$pkgdir/usr/include/pamac-flatpak.h"
-  rm "$pkgdir/usr/lib/libpamac-flatpak.so"
-  # remove pamac-gnome-integration
-  rm "$pkgdir/usr/bin/gnome-software"
-  rm "$pkgdir/usr/share/dbus-1/services/org.gnome.Software.service"
 }
-
-package_pamac-cli() {
-  depends=('pamac-common')
-  provides=("pamac-cli=$pkgver-$pkgrel")
-  conflicts=('pamac<=7.3.4-2' 'pamac-aur' 'pamac-cli-dev')
-  cd "$srcdir/pamac-v$_pkgver"
-  install -Dm755 "builddir/src/pamac" "$pkgdir/usr/bin/pamac"
-}
-
-package_pamac-gtk() {
-  depends=('pamac-cli' 'gtk3>=3.22')
-  provides=("pamac=$pkgver-$pkgrel" "pamac-gtk=$pkgver-$pkgrel")
-  replaces=('pamac')
-  conflicts=('pamac' 'pamac-aur' 'pamac-gtk-dev')
-  install=pamac-gtk.install
-  cd "$srcdir/pamac-v$_pkgver"
-  install -Dm755 "builddir/src/pamac-tray" "$pkgdir/usr/bin/pamac-tray"
-  install -Dm644 "data/applications/pamac-tray.desktop" "$pkgdir/etc/xdg/autostart/pamac-tray.desktop"
-  install -Dm644 "builddir/src/pamac-gtk.vapi" "$pkgdir/usr/share/vala/vapi/pamac-gtk.vapi"
-  install -Dm644 "builddir/src/pamac-gtk.h" "$pkgdir/usr/include/pamac-gtk.h"
-  install -Dm755 "builddir/src/libpamac-gtk.so" "$pkgdir/usr/lib/libpamac-gtk.so"
-  install -Dm755 "builddir/src/pamac-installer"  "$pkgdir/usr/bin/pamac-installer"
-  install -Dm755 "builddir/src/pamac-manager"  "$pkgdir/usr/bin/pamac-manager"
-  install -Dm644 "data/applications/org.manjaro.pamac.manager.desktop" "$pkgdir/usr/share/applications/org.manjaro.pamac.manager.desktop"
-  install -Dm644 "data/applications/pamac-installer.desktop" "$pkgdir/usr/share/applications/pamac-installer.desktop"
-  install -Dm644 "data/applications/pamac-manager.desktop" "$pkgdir/usr/share/applications/pamac-manager.desktop"
-  install -Dm644 "data/applications/pamac-updater.desktop" "$pkgdir/usr/share/applications/pamac-updater.desktop"
-  install -Dm644 "builddir/data/dbus/org.manjaro.pamac.manager.service" "$pkgdir/usr/share/dbus-1/services/org.manjaro.pamac.manager.service"
-  install -Dm644 "data/gnome-shell/org.manjaro.pamac.manager.search-provider.ini" "$pkgdir/usr/share/gnome-shell/search-providers/org.manjaro.pamac.manager.search-provider.ini"
-  mkdir -p "$pkgdir/usr/share/gnome-shell/extensions"
-  cp -r "data/gnome-shell/pamac-updates@manjaro.org" "$pkgdir/usr/share/gnome-shell/extensions"
-}
-
-package_pamac-tray-appindicator() {
-  pkgdesc="Tray icon for better integration of pamac-gtk in KDE"
-  depends=('pamac-gtk' 'libappindicator-gtk3')
-  provides=("pamac-tray-appindicator=$pkgver-$pkgrel")
-  conflicts=("pamac-tray-appindicator-dev")
-  cd "$srcdir/pamac-v$_pkgver"
-  install -Dm755 "builddir/src/pamac-tray-appindicator" "$pkgdir/usr/bin/pamac-tray-appindicator"
-  install -Dm644 "data/applications/pamac-tray-appindicator.desktop" "$pkgdir/etc/xdg/autostart/pamac-tray-appindicator.desktop"
-}
-
-package_pamac-snap-plugin() {
-  pkgdesc="Snap plugin for Pamac"
-  depends=('snapd' 'snapd-glib' 'pamac-cli')
-  provides=("pamac-snap-plugin=$pkgver-$pkgrel")
-  conflicts=("pamac-snap-plugin-dev")
-  cd "$srcdir/pamac-v$_pkgver"
-  install -Dm644 "builddir/src/pamac-snap.vapi" "$pkgdir/usr/share/vala/vapi/pamac-snap.vapi"
-  install -Dm644 "builddir/src/pamac-snap.h" "$pkgdir/usr/include/pamac-snap.h"
-  install -Dm755 "builddir/src/libpamac-snap.so" "$pkgdir/usr/lib/libpamac-snap.so"
-}
-
-package_pamac-flatpak-plugin() {
-  pkgdesc="Flatpak plugin for Pamac"
-  depends=('flatpak' 'pamac-cli')
-  provides=("pamac-flatpak-plugin=$pkgver-$pkgrel")
-  conflicts=("pamac-flatpak-plugin-dev")
-  install=pamac-flatpak-plugin.install
-  cd "$srcdir/pamac-v$_pkgver"
-  install -Dm644 "builddir/src/pamac-flatpak.vapi" "$pkgdir/usr/share/vala/vapi/pamac-flatpak.vapi"
-  install -Dm644 "builddir/src/pamac-flatpak.h" "$pkgdir/usr/include/pamac-flatpak.h"
-  install -Dm755 "builddir/src/libpamac-flatpak.so" "$pkgdir/usr/lib/libpamac-flatpak.so"
-}
-
-package_pamac-gnome-integration() {
-  pkgdesc="Pamac gnome integration "
-  depends=('pamac-gtk')
-  provides=("pamac-gnome-integration=$pkgver-$pkgrel")
-  conflicts=("pamac-gnome-integration-dev" 'gnome-software')
-  cd "$srcdir/pamac-v$_pkgver"
-  install -Dm644 "data/applications/org.gnome.Software.desktop" "$pkgdir/usr/share/applications/org.gnome.Software.desktop"
-  install -Dm644 "builddir/data/dbus/org.gnome.Software.service" "$pkgdir/usr/share/dbus-1/services/org.gnome.Software.service"
-  install -Dm755 "builddir/src/gnome-software" "$pkgdir/usr/bin/gnome-software"
-}
+# vim:set ts=2 sw=2 et:
