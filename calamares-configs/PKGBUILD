@@ -2,7 +2,7 @@
 pkgname=calamares-configs
 _pkgname=calamares-configs
 _destname="/etc/calamares"
-pkgver=1.0
+pkgver=1.1
 pkgrel=1
 pkgdesc="calamares for laxeros"
 arch=('any')
