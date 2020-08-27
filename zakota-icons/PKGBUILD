@@ -1,0 +1,28 @@
+# Maintainer: Manzoor Ahmed <manzoorahmedmunawar@gmail.com>
+_gitname=zakoota-icons
+pkgname=zakoota-icons
+pkgver=1.0
+pkgrel=1
+pkgdesc="Icon pack designed for Laxer OS"
+arch=('any')
+url="https://github.com/laxer-os/${_gitname}"
+license=('GPL3')
+makedepends=('git')
+options=('!strip')
+conflicts=(${_gitname})
+source=("git+${url}.git")
+sha256sums=('SKIP')
+
+
+package() {
+    install -d ${pkgdir}/usr/share/icons
+    cp -r ${srcdir}/${_gitname}* ${pkgdir}/usr/share/icons/
+    find ${pkgdir}/usr -type f -exec chmod 644 {} \;
+    find ${pkgdir}/usr -type d -exec chmod 755 {} \;
+    find ${pkgdir}/usr -type f -name '.directory' -delete
+    rm -rf "$pkgdir/usr/share/icons/zakoota-icons/.gitignore"
+    rm -rf "$pkgdir/usr/share/icons/zakoota-icons/.git"
+    rm -rf "$pkgdir/usr/share/icons/zakoota-icons/.github"
+    rm -rf "$pkgdir/usr/share/icons/zakoota-icons/.product"
+    rm -rf "$pkgdir/usr/share/icons/zakoota-icons/configure"
+}
