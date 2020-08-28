@@ -1,0 +1,30 @@
+# Maintainer: Manzoor Ahmed <manzoorahmedmunawar@gmail.com>
+_gitname=Charlie-theme
+pkgname=charlie-theme
+pkgdesc="GTK and gnome shell theme of Laxer OS"
+pkgver=1.0
+pkgrel=1
+arch=('any')
+url="https://github.com/laxer-os/charlie-theme"
+license=('GPL3')
+makedepends=('git')
+depends=('zakoota-icons' 'gtk-engine-murrine' 'gtk-engines')
+options=('!strip')
+conflicts=(${_gitname})
+source=("git+${url}.git")
+sha256sums=('SKIP')
+
+
+package() {
+    install -d ${pkgdir}/usr/share/themes/
+    cp -r ${srcdir}/charlie-theme/Charlie-light ${pkgdir}/usr/share/themes/
+    cp -r ${srcdir}/charlie-theme/Charlie-dark ${pkgdir}/usr/share/themes/
+    find ${pkgdir}/usr -type f -exec chmod 644 {} \;
+    find ${pkgdir}/usr -type d -exec chmod 755 {} \;
+    find ${pkgdir}/usr -type f -name '.directory' -delete
+    rm -rf "$pkgdir/usr/share/themes/charlie-theme/.gitignore"
+    rm -rf "$pkgdir/usr/share/themes/charlie-theme/.git"
+    rm -rf "$pkgdir/usr/share/themes/charlie-theme/.github"
+    rm -rf "$pkgdir/usr/share/themes/charlie-theme/.product"
+    rm -rf "$pkgdir/usr/share/themes/charlie-theme/configure"
+}
