@@ -1,0 +1,21 @@
+# Maintainer: Manzoor Ahmed <manzoorahmedmunawar@gmail.com>
+_gitname=laxer-wallpapers
+pkgname=laxer-wallpapers
+pkgdesc="wallpapers of laxer os"
+pkgver=1.0
+pkgrel=0
+arch=('any')
+url="https://github.com/laxer-os/laxer-wallpapers"
+license=('GPL3')
+makedepends=('git')
+options=('!strip')
+conflicts=(${_gitname})
+source=("git+${url}.git")
+sha256sums=('SKIP')
+
+package() {
+	cd "${srcdir}/${pkgname}"
+	install -d "${pkgdir}/usr/share/backgrounds/${_pkgname}"
+	install -m644 ${srcdir}/${pkgname}/*.jpg "${pkgdir}/usr/share/backgrounds/${_pkgname}"
+	install -m644 ${srcdir}/${pkgname}/*.png "${pkgdir}/usr/share/backgrounds/${_pkgname}"
+}
