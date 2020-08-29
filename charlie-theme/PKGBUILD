@@ -2,13 +2,13 @@
 _gitname=Charlie-theme
 pkgname=charlie-theme
 pkgdesc="GTK and gnome shell theme of Laxer OS"
-pkgver=1.0
+pkgver=1.1
 pkgrel=1
 arch=('any')
 url="https://github.com/laxer-os/charlie-theme"
 license=('GPL3')
 makedepends=('git')
-depends=('zakoota-icons' 'gtk-engine-murrine' 'gtk-engines')
+depends=('gnome')
 options=('!strip')
 conflicts=(${_gitname})
 source=("git+${url}.git")
