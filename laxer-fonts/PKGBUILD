@@ -1,0 +1,31 @@
+# Maintainer: Manzoor Ahmed <manzoorahmedmunawar@gmail.com>
+_gitname=laxeros-fonts
+pkgname=laxeros-fonts
+pkgdesc="fonts of laxer os"
+pkgver=1.0
+pkgrel=0
+arch=('any')
+url="https://github.com/Laxer-os/laxeros-fonts"
+license=('GPL3')
+makedepends=('git')
+options=('!strip')
+conflicts=(${_gitname})
+source=("git+${url}.git")
+sha256sums=('SKIP')
+
+package() {
+	cd "${srcdir}/${pkgname}"
+	install -d "${pkgdir}/usr/share/fonts/${_pkgname}"
+	cp -r ${srcdir}/laxeros-fonts/adobe-source-code-pro ${pkgdir}/usr/share/fonts/
+	cp -r ${srcdir}/laxeros-fonts/awesome-terminal-fonts ${pkgdir}/usr/share/fonts/
+	cp -r ${srcdir}/laxeros-fonts/cantarell ${pkgdir}/usr/share/fonts/
+	cp -r ${srcdir}/laxeros-fonts/droid ${pkgdir}/usr/share/fonts/
+	cp -r ${srcdir}/laxeros-fonts/encodings ${pkgdir}/usr/share/fonts/
+	cp -r ${srcdir}/laxeros-fonts/gnu-free ${pkgdir}/usr/share/fonts/
+	cp -r ${srcdir}/laxeros-fonts/gsfonts ${pkgdir}/usr/share/fonts/
+	cp -r ${srcdir}/laxeros-fonts/liberation ${pkgdir}/usr/share/fonts/
+	cp -r ${srcdir}/laxeros-fonts/noto ${pkgdir}/usr/share/fonts/
+	cp -r ${srcdir}/laxeros-fonts/OTF ${pkgdir}/usr/share/fonts/
+	cp -r ${srcdir}/laxeros-fonts/TTF ${pkgdir}/usr/share/fonts/
+	cp -r ${srcdir}/laxeros-fonts/util ${pkgdir}/usr/share/fonts/
+}
